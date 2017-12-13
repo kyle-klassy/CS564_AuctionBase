@@ -55,8 +55,8 @@ urls = ('/', 'home',
         '/selecttime', 'select_time',
 		'/search', 'search_db',
 		'/add_bid', 'addBid',
-		'/error', 'error'
-        # TODO: add additional URLs here
+		'/error', 'error',
+		'/auction', 'auction'
         # first parameter => URL, second parameter => class name
         )
 
@@ -116,6 +116,8 @@ class search_db:
 	def POST(self):
 		post_params = web.input()
 		Item_ID = post_params['itemID']
+		Category = '%' + post_params['category'] + '%'
+		Description = '%' + post_params['description'] + '%'
 		User_ID = post_params['userID']
 		Min_Price = post_params['minPrice']
 		Max_Price = post_params['maxPrice']
@@ -124,12 +126,12 @@ class search_db:
 		update_message = '(Success! Your results are below)'
 		error_message = '(Error searching AuctionBase...bad params)'
 
-		try:
-			results = sqlitedb.searchDB(Item_ID, User_ID, Min_Price, Max_Price, Status)
-		except Exception as e:
-			return render_template('search.html', message = error_message)
-		else:
-			return render_template('search.html', message = update_message, search_result = results)
+		#try:
+		results = sqlitedb.searchDB(Item_ID, Category, Description, User_ID, Min_Price, Max_Price, Status)
+		#except Exception as e:
+		#	return render_template('search.html', message = error_message)
+		#else:
+		return render_template('search.html', message = update_message, search_result = results)
 
 class addBid:
 	def GET(self):
@@ -155,6 +157,9 @@ class error:
 	def GET(self):
 		return render_template('error.html')
 		
+class auction:
+	def GET(self):
+		return render_template('auction.html')
 
 ###########################################################################################
 ##########################DO NOT CHANGE ANYTHING BELOW THIS LINE!##########################

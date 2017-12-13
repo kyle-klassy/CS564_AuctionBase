@@ -64,14 +64,16 @@ def updateBid(itemID, userID, bidPrice):
 	db.query(query_string, {'itemID': itemID, 'userID': userID, 'bidPrice': bidPrice, 'currTime': currTime})
 	#db.insert('Bids', ItemID=itemID, UserID=userID, Amount=bidPrice, Time=currTime)
 
-def searchDB(Item_ID, User_ID, Min_Price, Max_Price, Status):
+def searchDB(Item_ID, Category, Description, User_ID, Min_Price, Max_Price, Status):
 	#query_param_ItemID = Item_ID
 
 	vars = {}
 	currTime = getTime()
 
-	base_statement = 'select * from Items'
+	base_statement = 'SELECT * FROM Items'
 	item_statement = ''
+	cate_statement = ''
+	desc_statement = ''
 	user_statement = ''
 	minp_statement = ''
 	maxp_statement = ''
@@ -81,6 +83,12 @@ def searchDB(Item_ID, User_ID, Min_Price, Max_Price, Status):
 	if Item_ID != '':
 		item_statement = 'ItemID = $itemID'
 		vars['itemID'] = Item_ID
+	if Category != '%%':
+		cate_statement = 'Categories.Category LIKE $category'
+		vars['category'] = Category
+	if Description != '%%':
+		desc_statement = 'Description LIKE $description'
+		vars['description'] = Description
 	if User_ID != '':
 		user_statement = 'Seller_UserID = $userID'
 		vars['userID'] = User_ID
@@ -100,38 +108,44 @@ def searchDB(Item_ID, User_ID, Min_Price, Max_Price, Status):
 		stat_statement = '$currTime < Started'
 		vars['currTime'] = currTime
 			
-	for i in range(0,5):
+	for i in range(0,6):
 		if i == 0 and item_statement != '':
 			hasStatements = True
-			base_statement += ' where ' + item_statement
-		if i == 1 and user_statement != '':
+			base_statement += ' WHERE ' + item_statement
+		if i == 1 and desc_statement != '':
 			if hasStatements == False:
 				hasStatements = True
-				base_statement += ' where ' + user_statement
+				base_statement += ' WHERE ' + desc_statement
 			else:
-				base_statement += ' and ' + user_statement
-		if i == 2 and minp_statement != '':
+				base_statement += ' AND ' + desc_statement
+		if i == 2 and user_statement != '':
 			if hasStatements == False:
 				hasStatements = True
-				base_statement += ' where ' + minp_statement
+				base_statement += ' WHERE ' + user_statement
 			else:
-				base_statement += ' and ' + minp_statement
-		if i == 3 and maxp_statement != '':
+				base_statement += ' AND ' + user_statement
+		if i == 3 and minp_statement != '':
 			if hasStatements == False:
 				hasStatements = True
-				base_statement += ' where ' + maxp_statement
+				base_statement += ' WHERE ' + minp_statement
 			else:
-				base_statement += ' and ' + maxp_statement
-		if i == 4 and stat_statement != '':
+				base_statement += ' AND ' + minp_statement
+		if i == 4 and maxp_statement != '':
 			if hasStatements == False:
 				hasStatements = True
-				base_statement += ' where ' + stat_statement
+				base_statement += ' WHERE ' + maxp_statement
 			else:
-				base_statement += ' and ' + stat_statement
+				base_statement += ' AND ' + maxp_statement
+		if i == 5 and stat_statement != '':
+			if hasStatements == False:
+				hasStatements = True
+				base_statement += ' WHERE ' + stat_statement
+			else:
+				base_statement += ' AND ' + stat_statement
 
+	if cate_statement != '':
+		base_statement += ' JOIN Categories ON Items.ItemID = Categories.ItemID WHERE ' + cate_statement
+		
 	results = query(base_statement, vars)
 	return results
-
-
-
 
