@@ -52,7 +52,10 @@ def render_template(template_name, **context):
 
 urls = ('/', 'home',
 		'/currtime', 'curr_time',
-        '/selecttime', 'select_time'
+        '/selecttime', 'select_time',
+		'/search', 'search_db',
+		'/add_bid', 'addBid',
+		'/error', 'error'
         # TODO: add additional URLs here
         # first parameter => URL, second parameter => class name
         )
@@ -100,6 +103,35 @@ class select_time:
 class home:
 	def GET(self):
 		return render_template('home.html')
+
+class search_db:
+	def GET(self):
+		return render_template('search.html')
+
+class addBid:
+	def GET(self):
+		return render_template('add_bid.html')
+
+	def POST(self):
+		post_params = web.input()
+		Item_ID = post_params['itemID']
+		User_ID = post_params['userID']
+		Price = post_params['price']
+
+		update_message = '(Bid posted! Current bid for %s is now $%.4s)' % (Item_ID, Price)
+		error_message = '(Error in posting bid...try again!)'
+
+		try:
+			sqlitedb.updateBid(Item_ID, User_ID, Price)
+		except Exception as e:
+			return render_template('add_bid.html', message = error_message, add_result=False)
+		else:
+			return render_template('add_bid.html', message = update_message, add_result=True)
+
+class error:
+	def GET(self):
+		return render_template('error.html')
+		
 
 ###########################################################################################
 ##########################DO NOT CHANGE ANYTHING BELOW THIS LINE!##########################

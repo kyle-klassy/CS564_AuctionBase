@@ -56,6 +56,25 @@ def query(query_string, vars = {}):
 #TODO: additional methods to interact with your database,
 # e.g. to update the current time
 def updateTime(newTime):
+	try:
+		currTime=getTime()
+		db.update('CurrentTime', where='Time=$currTime', vars={'currTime': currTime}, Time=newTime)
+	except Exception as e:
+		print str(e)
+
+def updateBid(itemID, userID, bidPrice):
+	
+	
 	currTime=getTime()
-	db.update('CurrentTime', where='Time=$currTime', vars={'currTime': currTime}, Time=newTime)
+	db.insert('Bids', ItemID=itemID, UserID=userID, Amount=bidPrice, Time=currTime)
+
+
+
+
+
+
+
+
+
+	
 		
