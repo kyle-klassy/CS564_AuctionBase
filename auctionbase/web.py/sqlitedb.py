@@ -53,28 +53,85 @@ def query(query_string, vars = {}):
 
 #####################END HELPER METHODS#####################
 
-#TODO: additional methods to interact with your database,
 # e.g. to update the current time
 def updateTime(newTime):
-	try:
-		currTime=getTime()
-		db.update('CurrentTime', where='Time=$currTime', vars={'currTime': currTime}, Time=newTime)
-	except Exception as e:
-		print str(e)
+	currTime=getTime()
+	db.update('CurrentTime', where='Time=$currTime', vars={'currTime': currTime}, Time=newTime)
 
 def updateBid(itemID, userID, bidPrice):
-	
-	
 	currTime=getTime()
-	db.insert('Bids', ItemID=itemID, UserID=userID, Amount=bidPrice, Time=currTime)
+	query_string = 'insert into Bids (ItemId, UserId, Amount, Time) VALUES ($itemID, $userID, $bidPrice, $currTime)'
+	db.query(query_string, {'itemID': itemID, 'userID': userID, 'bidPrice': bidPrice, 'currTime': currTime})
+	#db.insert('Bids', ItemID=itemID, UserID=userID, Amount=bidPrice, Time=currTime)
+
+def searchDB(Item_ID, User_ID, Min_Price, Max_Price, Status):
+	#query_param_ItemID = Item_ID
+
+	vars = {}
+	currTime = getTime()
+
+	base_statement = 'select * from Items'
+	item_statement = ''
+	user_statement = ''
+	minp_statement = ''
+	maxp_statement = ''
+	stat_statement = ''
+	hasStatements = False
+
+	if Item_ID != '':
+		item_statement = 'ItemID = $itemID'
+		vars['itemID'] = Item_ID
+	if User_ID != '':
+		user_statement = 'Seller_UserID = $userID'
+		vars['userID'] = User_ID
+	if Min_Price != '':
+		minp_statement = 'Currently >= $minPrice'
+		vars['minPrice'] = Min_Price
+	if Max_Price != '':
+		maxp_statement = 'Currently <= $maxPrice'
+		vars['maxPrice'] = Max_Price
+	if Status == 'open':
+		stat_statement = '$currTime < Ends AND $currTime > Started AND Currently < Buy_Price'
+		vars['currTime'] = currTime
+	if Status == 'close':
+		stat_statement = '$currTime > Ends OR Currently >= Buy_Price'
+		vars['currTime'] = currTime
+	if Status == 'notStarted':
+		stat_statement = '$currTime < Started'
+		vars['currTime'] = currTime
+			
+	for i in range(0,5):
+		if i == 0 and item_statement != '':
+			hasStatements = True
+			base_statement += ' where ' + item_statement
+		if i == 1 and user_statement != '':
+			if hasStatements == False:
+				hasStatements = True
+				base_statement += ' where ' + user_statement
+			else:
+				base_statement += ' and ' + user_statement
+		if i == 2 and minp_statement != '':
+			if hasStatements == False:
+				hasStatements = True
+				base_statement += ' where ' + minp_statement
+			else:
+				base_statement += ' and ' + minp_statement
+		if i == 3 and maxp_statement != '':
+			if hasStatements == False:
+				hasStatements = True
+				base_statement += ' where ' + maxp_statement
+			else:
+				base_statement += ' and ' + maxp_statement
+		if i == 4 and stat_statement != '':
+			if hasStatements == False:
+				hasStatements = True
+				base_statement += ' where ' + stat_statement
+			else:
+				base_statement += ' and ' + stat_statement
+
+	results = query(base_statement, vars)
+	return results
 
 
 
 
-
-
-
-
-
-	
-		

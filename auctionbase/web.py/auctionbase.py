@@ -92,13 +92,18 @@ class select_time:
 
         selected_time = '%s-%s-%s %s:%s:%s' % (yyyy, MM, dd, HH, mm, ss)
         update_message = '(Hello, %s. Previously selected time was: %s.)' % (enter_name, selected_time)
+	error_message = '(The selected time is not valid...please try again)'
+
         # TODO: save the selected time as the current time in the database
-	sqlitedb.updateTime(selected_time)
-		
+	try:
+		sqlitedb.updateTime(selected_time)
+	except Exception as e:
+		return render_template('select_time.html', message = error_message)
+	else:
 
         # Here, we assign `update_message' to `message', which means
         # we'll refer to it in our template as `message'
-        return render_template('select_time.html', message = update_message)
+        	return render_template('select_time.html', message = update_message)
 
 class home:
 	def GET(self):
@@ -107,6 +112,24 @@ class home:
 class search_db:
 	def GET(self):
 		return render_template('search.html')
+
+	def POST(self):
+		post_params = web.input()
+		Item_ID = post_params['itemID']
+		User_ID = post_params['userID']
+		Min_Price = post_params['minPrice']
+		Max_Price = post_params['maxPrice']
+		Status = post_params['status']
+
+		update_message = '(Success! Your results are below)'
+		error_message = '(Error searching AuctionBase...bad params)'
+
+		try:
+			results = sqlitedb.searchDB(Item_ID, User_ID, Min_Price, Max_Price, Status)
+		except Exception as e:
+			return render_template('search.html', message = error_message)
+		else:
+			return render_template('search.html', message = update_message, search_result = results)
 
 class addBid:
 	def GET(self):
@@ -121,12 +144,12 @@ class addBid:
 		update_message = '(Bid posted! Current bid for %s is now $%.4s)' % (Item_ID, Price)
 		error_message = '(Error in posting bid...try again!)'
 
-		try:
-			sqlitedb.updateBid(Item_ID, User_ID, Price)
-		except Exception as e:
-			return render_template('add_bid.html', message = error_message, add_result=False)
-		else:
-			return render_template('add_bid.html', message = update_message, add_result=True)
+		#try:
+		sqlitedb.updateBid(Item_ID, User_ID, Price)
+		#except Exception as e:
+			#return render_template('add_bid.html', message = error_message, add_result=False)
+		#else:
+		return render_template('add_bid.html', message = update_message, add_result=True)
 
 class error:
 	def GET(self):
