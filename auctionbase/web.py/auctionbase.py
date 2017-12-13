@@ -50,8 +50,9 @@ def render_template(template_name, **context):
 
 #####################END HELPER METHODS#####################
 
-urls = ('/currtime', 'curr_time',
-        '/selecttime', 'select_time',
+urls = ('/', 'home',
+		'/currtime', 'curr_time',
+        '/selecttime', 'select_time'
         # TODO: add additional URLs here
         # first parameter => URL, second parameter => class name
         )
@@ -66,7 +67,7 @@ class curr_time:
         return render_template('curr_time.html', time = current_time)
 
 class select_time:
-    # Aanother GET request, this time to the URL '/selecttime'
+    # Another GET request, this time to the URL '/selecttime'
     def GET(self):
         return render_template('select_time.html')
 
@@ -89,10 +90,16 @@ class select_time:
         selected_time = '%s-%s-%s %s:%s:%s' % (yyyy, MM, dd, HH, mm, ss)
         update_message = '(Hello, %s. Previously selected time was: %s.)' % (enter_name, selected_time)
         # TODO: save the selected time as the current time in the database
+	sqlitedb.updateTime(selected_time)
+		
 
         # Here, we assign `update_message' to `message', which means
         # we'll refer to it in our template as `message'
         return render_template('select_time.html', message = update_message)
+
+class home:
+	def GET(self):
+		return render_template('home.html')
 
 ###########################################################################################
 ##########################DO NOT CHANGE ANYTHING BELOW THIS LINE!##########################

@@ -1,8 +1,7 @@
 import web
 
-db = web.database(dbn='sqlite',
-        db=web.database(dbn='sqlite', db='AuctionBase')
-    )
+db = web.database(dbn='sqlite',db='AuctionBase')
+
 
 ######################BEGIN HELPER METHODS######################
 
@@ -38,10 +37,14 @@ def getTime():
 # Note: if the `result' list is empty (i.e. there are no items for a
 # a given ID), this will throw an Exception!
 def getItemById(item_id):
-    # TODO: rewrite this method to catch the Exception in case `result' is empty
-    query_string = 'select * from Items where item_ID = $itemID'
-    result = query(query_string, {'itemID': item_id})
-    return result[0]
+    # TODO: rewrite this method to catch the Exception in case `result' is empty (good?)
+	try:
+    		query_string = 'select * from Items where item_ID = $itemID'
+    		result = query(query_string, {'itemID': item_id})
+	except Exception as e:
+		print str(e)
+	else:    
+		return result[0]
 
 # wrapper method around web.py's db.query method
 # check out http://webpy.org/cookbook/query for more info
@@ -53,4 +56,6 @@ def query(query_string, vars = {}):
 #TODO: additional methods to interact with your database,
 # e.g. to update the current time
 def updateTime(newTime):
+	currTime=getTime()
+	db.update('CurrentTime', where='Time=$currTime', vars={'currTime': currTime}, Time=newTime)
 		
