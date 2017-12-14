@@ -56,7 +56,9 @@ urls = ('/', 'home',
 		'/search', 'search_db',
 		'/add_bid', 'addBid',
 		'/error', 'error',
-		'/auction', 'auction'
+		'/auction', 'auction',
+		'/auction/', 'auction',
+		'/auction/(.+)', 'auction_with_id'
         # first parameter => URL, second parameter => class name
         )
 
@@ -126,12 +128,16 @@ class search_db:
 		update_message = '(Success! Your results are below)'
 		error_message = '(Error searching AuctionBase...bad params)'
 
-		#try:
-		results = sqlitedb.searchDB(Item_ID, Category, Description, User_ID, Min_Price, Max_Price, Status)
-		#except Exception as e:
-		#	return render_template('search.html', message = error_message)
-		#else:
-		return render_template('search.html', message = update_message, search_result = results)
+		t = sqlitedb.transaction()
+		
+		try:
+			results = sqlitedb.searchDB(Item_ID, Category, Description, User_ID, Min_Price, Max_Price, Status)
+		except Exception as e:
+			t.rollback()
+			return render_template('search.html', message = error_message)
+		else:
+			t.commit()
+			return render_template('search.html', message = update_message, search_result = results)
 
 class addBid:
 	def GET(self):
@@ -146,12 +152,16 @@ class addBid:
 		update_message = '(Bid posted! Current bid for %s is now $%.4s)' % (Item_ID, Price)
 		error_message = '(Error in posting bid...try again!)'
 
-		#try:
-		sqlitedb.updateBid(Item_ID, User_ID, Price)
-		#except Exception as e:
-			#return render_template('add_bid.html', message = error_message, add_result=False)
-		#else:
-		return render_template('add_bid.html', message = update_message, add_result=True)
+		t = sqlitedb.transaction()
+
+		try:
+			sqlitedb.updateBid(Item_ID, User_ID, Price)
+		except Exception as e:
+			t.rollback()
+			return render_template('add_bid.html', message = error_message, add_result=False)
+		else:
+			t.commit()
+			return render_template('add_bid.html', message = update_message, add_result=True)
 
 class error:
 	def GET(self):
@@ -160,6 +170,31 @@ class error:
 class auction:
 	def GET(self):
 		return render_template('auction.html')
+
+class auction_with_id:
+	def GET(self, ID):
+
+		formatted_ID = "{0}".format(ID)
+		print("ID is equal to: ", formatted_ID)
+
+		error_message = '(Problem with displaying Auction Info)'
+
+		t = sqlitedb.transaction()
+
+		try:
+			ItemResults = sqlitedb.displayAuctionInfo(formatted_ID)
+			Categories = sqlitedb.displayCategory(formatted_ID)
+			Status = sqlitedb.auctionStatus(formatted_ID)
+			Bids = sqlitedb.auctionBids(formatted_ID)
+			Winner = sqlitedb.auctionWinner(formatted_ID)
+		except Exceptions as e:
+			t.rollback()
+			return render_template('auction.html', message = error_message)
+		else:
+			t.commit()
+			return render_template('auction.html', attributes = ItemResults, cats = Categories, status = Status, bids = Bids, winner = Winner)
+
+
 
 ###########################################################################################
 ##########################DO NOT CHANGE ANYTHING BELOW THIS LINE!##########################

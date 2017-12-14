@@ -98,20 +98,31 @@ def searchDB(Item_ID, Category, Description, User_ID, Min_Price, Max_Price, Stat
 	if Max_Price != '':
 		maxp_statement = 'Currently <= $maxPrice'
 		vars['maxPrice'] = Max_Price
+
 	if Status == 'open':
-		stat_statement = '$currTime < Ends AND $currTime > Started AND Currently < Buy_Price'
+		stat_statement = '$currTime < Ends AND $currTime > Started AND (Currently < Buy_Price OR Buy_Price IS NULL)'
 		vars['currTime'] = currTime
 	if Status == 'close':
-		stat_statement = '$currTime > Ends OR Currently >= Buy_Price'
+		stat_statement = '$currTime > Ends OR (Currently >= Buy_Price OR Buy_Price IS NULL)'
 		vars['currTime'] = currTime
 	if Status == 'notStarted':
 		stat_statement = '$currTime < Started'
 		vars['currTime'] = currTime
+
+
+	if cate_statement != '':
+		hasStatements = True
+		base_statement += ' JOIN Categories ON Items.ItemID = Categories.ItemID WHERE ' + cate_statement
 			
+
+
 	for i in range(0,6):
 		if i == 0 and item_statement != '':
-			hasStatements = True
-			base_statement += ' WHERE ' + item_statement
+			if hasStatements == False:
+				hasStatements = True
+				base_statement += ' WHERE ' + item_statement
+			else:
+				base_statement += ' AND ' + item_statement
 		if i == 1 and desc_statement != '':
 			if hasStatements == False:
 				hasStatements = True
@@ -143,9 +154,54 @@ def searchDB(Item_ID, Category, Description, User_ID, Min_Price, Max_Price, Stat
 			else:
 				base_statement += ' AND ' + stat_statement
 
-	if cate_statement != '':
-		base_statement += ' JOIN Categories ON Items.ItemID = Categories.ItemID WHERE ' + cate_statement
-		
+	
 	results = query(base_statement, vars)
 	return results
 
+
+def displayAuctionInfo(Item_ID):
+
+	vars = {}
+	vars['itemID'] = Item_ID
+
+	results = query('SELECT * FROM Items WHERE ItemID = $itemID', vars)
+	return results
+
+def displayCategory(Item_ID):
+
+	vars = {}
+	vars['itemID'] = Item_ID
+
+	results = query('SELECT Category FROM Items, Categories WHERE Categories.ItemID = Items.ItemID AND Items.ItemID = $itemID', vars)
+	return results
+
+def auctionStatus(Item_ID):
+	
+	currTime = getTime()
+	
+	vars = {}
+	vars['itemID'] = Item_ID
+	vars['currTime'] = currTime
+
+	results = query('SELECT count(*) as COUNT FROM Items WHERE ($currTime < Ends) AND ($currTime > Started) AND (Currently < Buy_Price OR Buy_Price IS NULL) AND (ItemID = $itemID)', vars)
+	return results
+
+def auctionBids(Item_ID):
+
+	vars = {}
+	vars['itemID'] = Item_ID
+
+	results = query('SELECT UserID, Time, Amount FROM Bids WHERE ItemID = $itemID', vars)
+	return results
+
+def auctionWinner(Item_ID):
+
+	currTime = getTime()
+	
+	vars = {}
+	vars['itemID'] = Item_ID
+	vars['currTime'] = currTime
+
+	results = query('SELECT Bids.UserID FROM Bids, Items WHERE Bids.ItemID = Items.ItemID AND Items.ItemID = $itemID AND ($currTime > Ends OR (Currently >= Buy_Price AND Buy_Price IS NOT NULL)) ORDER BY Bids.Amount DESC LIMIT 1', vars)
+
+	return results

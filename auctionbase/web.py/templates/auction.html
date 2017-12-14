@@ -2,19 +2,85 @@
 {% block content %}
 <h3>Auction Info</h3>
 <ul>
-{% if search_result %}
-{% for result in search_result %}
-	{% for key in result %}
-		<div>
-			<span>{{ key|e }}</span>
-			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-			<span>{{ result[key]|e }}</span>
-		</div>
-  	{% endfor %}
-  	<div>--------</div>
-{% endfor %}
+<br>
+
+{% if message is defined %}
+	<div class="alert alert-warning" role="alert">{{ message }}</div>
+{% endif %}
+<div><strong>Item Attributes: </strong></div>
+{% if attributes %}
+	{% for result in attributes %}
+		{% for key in result %}
+			<div>
+				<span>{{ key|e }}</span>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<span>{{ result[key]|e }}</span>
+			</div>
+  		{% endfor %}
+  		<div>--------</div>
+	{% endfor %}
 {% else %}
 <div>No results</div>
 {% endif %}
+
+{% if cats %}
+	<span><strong>Categories: </strong></span>
+	{% for result in cats %}
+	
+		{% for key in result %}
+
+				<span>{{ result[key]|e }}</span>
+				<div style="display: inline"> |</div> 
+
+  		{% endfor %}
+	{% endfor %}
+	<div>--------</div>
+{% else %}
+<div>No categories</div>
+{% endif %}
+
+<div style="display: inline"><strong>Auction Status: </strong></div>
+{% for key in status %}
+		{% if key.COUNT == 1 %}
+			<div style="display: inline">Open</div>
+		{% else %}
+			<div style="display: inline">Closed</div>
+	{% endif %}
+{% endfor %}
+<div>--------</div>
+
+<div style="display: inline"><strong>Bid Info: </strong></div>
+{% if bids %}
+	{% for result in bids %}
+		{% for key in result %}
+			<div>
+				<span>{{ key|e }}</span>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<span>{{ result[key]|e }}</span>
+			</div>
+  		{% endfor %}
+	<div>--------</div>
+
+	{% endfor %}
+
+{% else %}
+<div>No bids</div>
+{% endif %}
+
+<div style="display: inline"><strong>Auction Winner: </strong></div>
+{% if winner %}
+	{% for result in winner %}
+		{% for key in result %}
+		  <div>
+			<span>{{ result[key]|e }}</span>
+		  </div>
+		{% endfor %}
+	{% endfor %}
+	<div>--------</div>
+
+{% else %}
+<div>No winner</div>
+{% endif %}
+
 </ul> 
 {% endblock %}
